@@ -12,7 +12,6 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import tensorflow as tf
 
 # Import eye side detector
-sys.path.append(os.path.join(os.path.dirname(__file__), '../python-eye'))
 try:
     from eye_side_detector import EyeSideDetector
     EYE_SIDE_AVAILABLE = True
