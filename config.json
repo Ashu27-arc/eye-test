@@ -1,0 +1,25 @@
+{
+  "project": {
+    "name": "Eye Test Application",
+    "version": "1.0.0",
+    "description": "AI-powered eye test application with React Native frontend and Node.js backend"
+  },
+  "backend": {
+    "port": 4000,
+    "host": "localhost",
+    "uploadDir": "./uploads",
+    "pythonScriptPath": "./predict.py",
+    "maxFileSize": "10mb",
+    "allowedFileTypes": ["image/jpeg", "image/png", "image/jpg"]
+  },
+  "frontend": {
+    "apiUrl": "http://localhost:4000",
+    "cameraQuality": 0.8,
+    "imageFormat": "jpeg"
+  },
+  "ml": {
+    "modelPath": "../python-eye/model.h5",
+    "inputSize": [224, 224],
+    "confidenceThreshold": 0.7
+  }
+}
