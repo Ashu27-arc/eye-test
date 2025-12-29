@@ -1,6 +1,6 @@
 """
 Eye Test Prediction Script
-Loads ML model and predicts eye condition from image
+Loads ML model and predicts eye condition from image with eye side detection
 """
 import sys
 import os
@@ -10,6 +10,15 @@ import numpy as np
 # Suppress TensorFlow warnings
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import tensorflow as tf
+
+# Import eye side detector
+sys.path.append(os.path.join(os.path.dirname(__file__), '../python-eye'))
+try:
+    from eye_side_detector import EyeSideDetector
+    EYE_SIDE_AVAILABLE = True
+except ImportError:
+    EYE_SIDE_AVAILABLE = False
+    print("Warning: Eye side detection not available")
 
 # Check if correct arguments provided
 if len(sys.argv) < 2:
@@ -43,6 +52,16 @@ CATEGORIES = [
 ]
 
 try:
+    # Detect eye side first
+    eye_side = "Unknown"
+    if EYE_SIDE_AVAILABLE:
+        try:
+            detector = EyeSideDetector()
+            eye_side = detector.detect_simple(image_path)
+        except Exception as side_error:
+            print(f"Warning: Eye side detection failed - {side_error}", file=sys.stderr)
+            eye_side = "Unknown"
+    
     # Load model with error handling
     try:
         model = tf.keras.models.load_model(model_path, compile=False)
@@ -78,9 +97,12 @@ try:
     index = np.argmax(prediction)
     confidence = float(prediction[0][index]) * 100
     
-    # Output result
+    # Output result with eye side
     result = CATEGORIES[index]
-    print(f"{result} (Confidence: {confidence:.1f}%)")
+    if eye_side != "Unknown":
+        print(f"{eye_side} - {result} (Confidence: {confidence:.1f}%)")
+    else:
+        print(f"{result} (Confidence: {confidence:.1f}%)")
     
 except KeyboardInterrupt:
     print("Error: Prediction interrupted")

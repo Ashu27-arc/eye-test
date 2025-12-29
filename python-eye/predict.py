@@ -1,12 +1,13 @@
 """
 Eye Test Prediction Script
-Standalone prediction script for testing
+Standalone prediction script for testing with eye side detection
 """
 import sys
 import os
 import cv2
 import numpy as np
 import tensorflow as tf
+from eye_side_detector import EyeSideDetector
 
 CATEGORIES = [
     "Normal (0)",
@@ -15,18 +16,29 @@ CATEGORIES = [
     "Severe Myopia (-3.5 to -5)"
 ]
 
-def predict_eye(image_path, model_path='model.h5'):
+def predict_eye(image_path, model_path='model.h5', detect_side=True):
     """
-    Predict eye condition from image
+    Predict eye condition from image with eye side detection
     
     Args:
         image_path: Path to eye image
         model_path: Path to trained model
+        detect_side: Whether to detect eye side (left/right)
         
     Returns:
-        Prediction result string
+        Prediction result string with eye side
     """
     try:
+        # Detect eye side
+        eye_side = "Unknown"
+        if detect_side:
+            try:
+                detector = EyeSideDetector()
+                eye_side = detector.detect_simple(image_path)
+            except Exception as side_error:
+                print(f"Warning: Eye side detection failed - {side_error}")
+                eye_side = "Unknown"
+        
         # Load model
         if not os.path.exists(model_path):
             raise FileNotFoundError(f"Model not found at {model_path}")
@@ -51,7 +63,12 @@ def predict_eye(image_path, model_path='model.h5'):
         confidence = float(prediction[0][index]) * 100
         
         result = CATEGORIES[index]
-        return f"{result} (Confidence: {confidence:.1f}%)"
+        
+        # Combine eye side with result
+        if eye_side != "Unknown":
+            return f"{eye_side} - {result} (Confidence: {confidence:.1f}%)"
+        else:
+            return f"{result} (Confidence: {confidence:.1f}%)"
         
     except Exception as e:
         return f"Error: {str(e)}"
@@ -59,12 +76,21 @@ def predict_eye(image_path, model_path='model.h5'):
 # Command line usage
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python predict.py <image_path> [model_path]")
+        print("Usage: python predict.py <image_path> [model_path] [--no-side]")
         print("Example: python predict.py test_eye.jpg model.h5")
+        print("         python predict.py test_eye.jpg --no-side")
         sys.exit(1)
     
     image_path = sys.argv[1]
-    model_path = sys.argv[2] if len(sys.argv) > 2 else 'model.h5'
+    model_path = 'model.h5'
+    detect_side = True
     
-    result = predict_eye(image_path, model_path)
+    # Parse arguments
+    for arg in sys.argv[2:]:
+        if arg == '--no-side':
+            detect_side = False
+        elif not arg.startswith('--'):
+            model_path = arg
+    
+    result = predict_eye(image_path, model_path, detect_side)
     print("👁 Eye Result:", result)

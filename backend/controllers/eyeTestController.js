@@ -105,7 +105,8 @@ exports.predictEye = async (req, res) => {
             const result = stdout.trim();
             console.log("✅ Prediction result:", result);
 
-            // Extract category and confidence
+            // Extract eye side, category and confidence
+            const eyeSide = EyeTest.extractEyeSide(result);
             const category = EyeTest.extractCategory(result);
             const confidence = EyeTest.extractConfidence(result);
 
@@ -121,6 +122,7 @@ exports.predictEye = async (req, res) => {
                         prediction: result,
                         confidence: confidence,
                         category: category,
+                        eyeSide: eyeSide,
                         status: "completed",
                         processingTime,
                         deviceInfo: req.headers['user-agent']
@@ -144,6 +146,7 @@ exports.predictEye = async (req, res) => {
                     id: savedRecord._id,
                     category: savedRecord.category,
                     confidence: savedRecord.confidence,
+                    eyeSide: savedRecord.eyeSide,
                     timestamp: savedRecord.createdAt
                 } : null,
                 processingTime: `${processingTime}ms`

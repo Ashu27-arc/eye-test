@@ -37,6 +37,11 @@ const eyeTestSchema = new mongoose.Schema({
         enum: ['Normal', 'Mild Myopia', 'Moderate Myopia', 'Severe Myopia'],
         required: true
     },
+    eyeSide: {
+        type: String,
+        enum: ['Left Eye', 'Right Eye', 'Unknown'],
+        default: 'Unknown'
+    },
 
     // User information (optional - for future use)
     userId: {
@@ -95,6 +100,13 @@ eyeTestSchema.statics.extractCategory = function(predictionString) {
     if (predictionString.includes('Moderate Myopia')) return 'Moderate Myopia';
     if (predictionString.includes('Severe Myopia')) return 'Severe Myopia';
     return 'Normal';
+};
+
+// Method to extract eye side from prediction string
+eyeTestSchema.statics.extractEyeSide = function(predictionString) {
+    if (predictionString.includes('Left Eye')) return 'Left Eye';
+    if (predictionString.includes('Right Eye')) return 'Right Eye';
+    return 'Unknown';
 };
 
 // Method to extract confidence from prediction string
